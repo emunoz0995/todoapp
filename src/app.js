@@ -1,15 +1,21 @@
 const express = require('express');
 const db = require ('./utils/database');
 const initModels = require ('./models/init.model');
-const Users = require('./models/users.model');
-const Todos = require('./models/todos.model');
+const userRoutes = require('./routes/users.routes');
+const todoRoutes = require('./routes/todo.routes');
+const authRoutes = require('./routes/auth.routes');
+
+require('dotenv').config();
+
+
+const cors = require('cors');
 
 //crear una instacia de express
 const app = express();
-
+app.use(cors());
 app.use(express.json());
 
-const PORT = 8000;
+const PORT = process.env.PORT;
 
 //probando la conexion bd
 
@@ -27,149 +33,11 @@ app.get('/', (req, res)=> {
     res.status(200).json({message: 'Bienvenidos al servidor'});
 });
 
-// rutas de nuestros endpoints (los vamos a llamar ep),
-//todas la s consultas de usuarios localhost:8000/users
-//todas la s consultas de tareas localhost:8000/todos
+app.use('/api/v1', userRoutes);
 
-app.get('/users', async (req, res) => {
-  try {
-    // vamos a obtener la consulta de todos los usaurios
-    const result = await Users.findAll();
-    res.status(200).json(result);
-  } catch (error) {
-    console.log(error);
-  }
-});
+app.use('/api/v1', todoRoutes);
 
-//obtener usuario segun su id
-
-app.get('/users/:id', async (req, res) => {
-    try {
-
-        const { id } = req.params;
-        const result = await Users.findByPk(id);
-        res.status(200).json(result);        
-    } catch (error) {
-        console.log(error);     
-    }
-});
-
-// obtenre un usuario por username
-
-app.get('/users/username/:username', async (req, res) => {
-    try {
-        
-        const { username } = req.params;
-        const result = await Users.findOne({where: {username}});
-        res.status(200).json(result);        
-    } catch (error) {
-        console.log(error);     
-    }
-});
-
-// crear usuario
-
-app.post('/users', async (req, res) =>{
-try {
-    const user = req.body;
-    const result = await Users.create(user);
-    res.status(201).json(result);
-    } catch (error) {
-        res.status(400).json(error.message);
-    console.log(error);
-}
-});
-
-//actualizar usuario
-
-app.put('/users/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const field = req.body;
-        const result = await Users.update(field, {
-            where: {id},
-        });
-        res.status(200).json(result);        
-    } catch (error) {
-        res.status(400).json(error.message);
-        console.log(error);     
-    }
-});
-
-// eliminar usuario --> id
-
-app.delete('/users/:id', async (req, res) =>{
-try {
-    const { id } = req.params;
-    const result =  await Users.destroy( {
-        where: {id}
-    });
-    res.status(200).json(result)
-} catch (error) {
-    res.status(400).json(error.message);
-}
-});
-
-
-// crearndo endpoints para todos
-
-app.get('/todos', async (req, res) => {
- try {
-    const result = await Todos.findAll();
-    res.status(200).json(result);
- } catch (error) {
-    res.status(400).json(error.message);
- }
-});
-
-app.get('/todos/:id', async ( req, res) =>{
-  try {
-    const { id } = req.params;
-    const result = await Todos.findByPk(id);
-    res.status(200).json(result);
-  } catch (error) {
-    res.status(400).json(error.message);
-  }
-});
-
-app.post('/todos', async ( req, res) => {
-    try {
-        const todo = req.body;
-        const result = await Todos.create(todo);
-        res.status(201).json(result);
-    } catch (error) {
-        res.status(400).json(error.message);
-    }
-});
-
-
-app.put('/todos/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { isComplete }  = req.body;
-        const result = await Todos.update({isComplete}, {
-            where: {id},
-        });
-        res.status(200).json(result);        
-    } catch (error) {
-        res.status(400).json(error.message);   
-    }
-});
-
-app.delete('/todos/:id', async (req, res) =>{
-    try {
-        const { id } = req.params;
-        const result =  await Todos.destroy( {
-            where: {id}
-        });
-        res.status(200).json(result)
-    } catch (error) {
-        res.status(400).json(error.message);
-    }
-    });
-
-
-
+app.use('/api/v1', authRoutes);
 
 app.listen(PORT, () => {
     console.log(`Servidor escuchando en el puerto ${PORT}`);
