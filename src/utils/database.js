@@ -11,6 +11,7 @@ const db = new Sequelize({
     password: process.env.DB_PASSWORD,
     dialect: 'postgres',
     logging: false, // la base que estamos usando
+    dialectOptions: { ssl: {require: true, rejectUnauthorized: false}}
 });
 
 module.exports = db;
